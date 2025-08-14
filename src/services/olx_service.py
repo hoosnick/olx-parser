@@ -94,10 +94,10 @@ class OLXScrapingService:
             self.database.add_offer_id(offer.id)
 
             # Create photo collage if photos available
-            photo_path = self._create_offer_collage(offer)
+            photo = self._create_offer_collage(offer)
 
             # Send message to Telegram
-            success = self.telegram_service.send_offer_message(offer, photo_path)
+            success = self.telegram_service.send_offer_message(offer, photo)
 
             if success:
                 logger.info("Successfully processed: %s" % offer.url)

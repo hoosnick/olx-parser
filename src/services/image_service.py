@@ -174,14 +174,14 @@ class ImageProcessor:
 
 class MemoryImageProcessor:
 
-    def _build_photolist(self, images: list[bytes]) -> list[Photo]:
+    def _build_photolist(self, images: list[io.BytesIO]) -> list[Photo]:
         ret: list[Photo] = []
 
-        for name in images:
+        for i in images:
             try:
-                img = Image.open(name)
+                img = Image.open(i)
             except OSError:
-                raise render.BadPhoto(name)
+                raise render.BadPhoto(i)
             w, h = img.size
 
             orientation = 0
@@ -194,7 +194,7 @@ class MemoryImageProcessor:
             except Exception:
                 pass
 
-            ret.append(Photo(name, w, h, orientation))
+            ret.append(Photo(i, w, h, orientation))
         return ret
 
     def create_photo_collage(
@@ -227,11 +227,11 @@ class MemoryImageProcessor:
         finally:
             ...
 
-    def _download_images(self, urls: list[str]) -> list[bytes]:
+    def _download_images(self, urls: list[str]) -> list[io.BytesIO]:
         if not urls:
             return []
 
-        images: list[bytes] = []
+        images: list[io.BytesIO] = []
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=MAX_DOWNLOAD_WORKERS
         ) as executor:
@@ -251,15 +251,11 @@ class MemoryImageProcessor:
 
         return images
 
-    def _download_single_image(self, url: str) -> bytes:
+    def _download_single_image(self, url: str) -> io.BytesIO:
         try:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
-            temp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=True)
-            temp.name = uuid.uuid4().hex + ".jpg"
-            temp.write(response.content)
-            temp.seek(0)
-            return temp  # type: ignore
+            return io.BytesIO(response.content)
 
         except requests.RequestException as e:
             logger.warning("Failed to download image from %s: %s" % (url, e))
@@ -304,7 +300,6 @@ class MemoryImageProcessor:
 
         temp = tempfile.NamedTemporaryFile(suffix=".jpg", delete=True)
         temp.name = uuid.uuid4().hex + ".jpg"
-
         task = render.RenderingTask(
             page=page,
             output_file=temp,
@@ -316,6 +311,7 @@ class MemoryImageProcessor:
 
         task.run()
         temp.seek(0)
+
         return temp  # type: ignore
 
     def save_output(self, canvas: Image.Image) -> None:

@@ -34,20 +34,20 @@ class TelegramService:
     def send_offer_message(
         self,
         offer: Offer,
-        photo_path: Optional[Union[bytes, str]] = None,
+        photo: Optional[Union[bytes, str]] = None,
     ) -> bool:
         try:
             message_text = self._format_offer_message(offer)
             reply_markup = self._create_offer_keyboard(offer)
 
-            if photo_path and not isinstance(photo_path, str):
+            if not isinstance(photo, str):
                 success = self._send_photo_message(
-                    message_text, photo_path, reply_markup
+                    message_text,
+                    io.BytesIO(photo.read()),  # type: ignore
+                    reply_markup,
                 )
-            elif isinstance(photo_path, str) and photo_path.startswith("https"):
-                success = self._send_photo_message(
-                    message_text, photo_path, reply_markup
-                )
+            elif isinstance(photo, str) and photo.startswith("https"):
+                success = self._send_photo_message(message_text, photo, reply_markup)
             else:
                 success = self._send_text_message(message_text, reply_markup)
 
@@ -57,21 +57,22 @@ class TelegramService:
             return success
 
         except Exception as e:
-            logger.exception(
-                "Error sending Telegram message for offer %s: %s" % (offer.id, e)
-            )
+            logger.exception("Error sending message for offer %s: %s" % (offer.id, e))
             return False
         finally:
-            return True
-            # Clean up local photo file
             if (
-                photo_path
-                and os.path.exists(photo_path)
-                and not photo_path.startswith("https")
+                isinstance(photo, str)
+                and os.path.exists(photo)
+                and not photo.startswith("https")
             ):
                 with suppress(Exception):
-                    os.unlink(photo_path)
-                    logger.debug("Cleaned up photo file: %s" % photo_path)
+                    os.unlink(photo)
+                    logger.debug("Cleaned up photo file: %s" % photo)
+
+            else:
+                with suppress(Exception):
+                    photo.close()  # type: ignore
+                    logger.debug("Closed photo file stream")
 
     def _format_offer_message(self, offer: Offer) -> str:
         template = (
@@ -168,31 +169,30 @@ class TelegramService:
     def _send_photo_message(
         self,
         caption: str,
-        photo_path: Optional[Union[bytes, str]],
+        photo: Optional[Union[io.BytesIO, str]],
         reply_markup: types.InlineKeyboardMarkup,
     ) -> bool:
         try:
-            photo: Union[str, types.InputFile]
-            if isinstance(photo_path, str) and photo_path.startswith("https"):
-                photo = photo_path
+            if isinstance(photo, str) and photo.startswith("https"):
+                image = photo
             else:
-                photo = types.InputFile(io.BytesIO(photo_path.read()))  # type: ignore
+                image = types.InputFile(photo)  # type: ignore
 
             self.bot.send_photo(
                 self.channel_id,
                 caption=caption,
-                photo=photo,
+                photo=image,
                 reply_markup=reply_markup,
                 timeout=10,
             )
 
             # Close file if it's a local file
             if (
-                not isinstance(photo, str)
-                and not isinstance(photo.file, str)
-                and hasattr(photo.file, "close")
+                isinstance(image, types.InputFile)
+                and isinstance(image.file, io.IOBase)
+                and hasattr(image.file, "close")
             ):
-                photo.file.close()
+                image.file.close()
 
             return True
 
