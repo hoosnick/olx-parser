@@ -2,7 +2,7 @@ import os
 from typing import Tuple
 
 from ..adapters.database import SQLiteDatabase
-from ..services.image_service import ImageProcessor
+from ..services.image_service import ImageProcessor, MemoryImageProcessor
 from ..services.olx_service import OLXScrapingService
 from ..services.telegram_service import TelegramService
 
@@ -16,7 +16,7 @@ class ApplicationFactory:
         database = SQLiteDatabase()
 
         telegram_service = TelegramService()
-        image_processor = ImageProcessor()
+        image_processor = MemoryImageProcessor()
 
         olx_service = OLXScrapingService(
             database=database,

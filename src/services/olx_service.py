@@ -1,3 +1,4 @@
+import io
 from typing import Any, Optional
 
 import requests
@@ -7,7 +8,7 @@ from pydantic import ValidationError
 from ..adapters.database import DatabaseInterface
 from ..core.config import OLX_BASE_URL, OLX_REQUEST_TIMEOUT, SEARCH_PARAMS
 from ..core.models import Offer
-from ..services.image_service import ImageProcessor
+from ..services.image_service import ImageProcessor, MemoryImageProcessor
 from ..services.telegram_service import TelegramService
 
 
@@ -17,7 +18,7 @@ class OLXScrapingService:
         self,
         database: DatabaseInterface,
         telegram_service: TelegramService,
-        image_processor: ImageProcessor,
+        image_processor: ImageProcessor | MemoryImageProcessor,
     ) -> None:
         self.database = database
         self.telegram_service = telegram_service
@@ -39,7 +40,7 @@ class OLXScrapingService:
                 self._process_single_offer(offer)
 
         except Exception as e:
-            logger.error("Error in fetch_and_process_offers: %s" % e)
+            logger.exception("Error in fetch_and_process_offers: %s" % e)
 
     def _fetch_offers_from_api(self) -> list[dict[str, Any]]:
         try:
@@ -104,9 +105,9 @@ class OLXScrapingService:
                 logger.warning("Failed to send message for offer %s" % offer.id)
 
         except Exception as e:
-            logger.error("Error processing offer %s: %s" % (offer.id, e))
+            logger.exception("Error processing offer %s: %s" % (offer.id, e))
 
-    def _create_offer_collage(self, offer: Offer) -> Optional[str]:
+    def _create_offer_collage(self, offer: Offer) -> Optional[str | bytes]:
         if not offer.photos:
             logger.debug("No photos available for offer %s" % offer.id)
             return None

@@ -1,5 +1,5 @@
+import io
 import os
-import pathlib
 import random
 import time
 from contextlib import suppress
@@ -34,17 +34,17 @@ class TelegramService:
     def send_offer_message(
         self,
         offer: Offer,
-        photo_path: Optional[str] = None,
+        photo_path: Optional[Union[bytes, str]] = None,
     ) -> bool:
         try:
             message_text = self._format_offer_message(offer)
             reply_markup = self._create_offer_keyboard(offer)
 
-            if photo_path and os.path.exists(photo_path):
+            if photo_path and not isinstance(photo_path, str):
                 success = self._send_photo_message(
                     message_text, photo_path, reply_markup
                 )
-            elif photo_path and photo_path.startswith("https"):
+            elif isinstance(photo_path, str) and photo_path.startswith("https"):
                 success = self._send_photo_message(
                     message_text, photo_path, reply_markup
                 )
@@ -57,11 +57,12 @@ class TelegramService:
             return success
 
         except Exception as e:
-            logger.error(
+            logger.exception(
                 "Error sending Telegram message for offer %s: %s" % (offer.id, e)
             )
             return False
         finally:
+            return True
             # Clean up local photo file
             if (
                 photo_path
@@ -167,15 +168,15 @@ class TelegramService:
     def _send_photo_message(
         self,
         caption: str,
-        photo_path: str,
+        photo_path: Optional[Union[bytes, str]],
         reply_markup: types.InlineKeyboardMarkup,
     ) -> bool:
         try:
             photo: Union[str, types.InputFile]
-            if photo_path.startswith("https"):
+            if isinstance(photo_path, str) and photo_path.startswith("https"):
                 photo = photo_path
             else:
-                photo = types.InputFile(pathlib.Path(photo_path))
+                photo = types.InputFile(io.BytesIO(photo_path.read()))  # type: ignore
 
             self.bot.send_photo(
                 self.channel_id,
@@ -196,7 +197,7 @@ class TelegramService:
             return True
 
         except Exception as e:
-            logger.error("Error sending photo message: %s" % e)
+            logger.exception("Error sending photo message: %s" % e)
             return False
 
     def _send_text_message(
@@ -212,7 +213,7 @@ class TelegramService:
             return True
 
         except Exception as e:
-            logger.error("Error sending text message: %s" % e)
+            logger.exception("Error sending text message: %s" % e)
             return False
 
     def _random_delay(self) -> None:
