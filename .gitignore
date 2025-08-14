@@ -47,7 +47,7 @@ Thumbs.db
 # Project specific
 offers.db
 logs/
-photo_collage_folder/
+photo_collages/
 downloads/
 *.log
 
