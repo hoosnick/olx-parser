@@ -19,13 +19,16 @@ SEARCH_PARAMS: Final[dict[str, int | str]] = {
     "currency": "UYE",
     "sort_by": "created_at:desc",
     "filter_float_price:from": 100,
-    "filter_float_price:to": 400,
+    "filter_float_price:to": 350,
     "filter_float_number_of_rooms:from": 1,
     "filter_float_number_of_rooms:to": 6,
     "filter_refiners": "",
 }
 
 DATABASE_NAME: Final[str] = "offers.db"
+
+LOGGING_LEVEL: Final[str] = "INFO"
+LOG_TO_FILE: Final[bool] = False
 
 COLLAGE_OUTPUT_WIDTH: Final[int] = 3840
 COLLAGE_OUTPUT_HEIGHT: Final[int] = 2160
