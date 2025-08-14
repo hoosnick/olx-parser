@@ -186,7 +186,11 @@ class TelegramService:
             )
 
             # Close file if it's a local file
-            if hasattr(photo, "file") and hasattr(photo.file, "close"):
+            if (
+                not isinstance(photo, str)
+                and not isinstance(photo.file, str)
+                and hasattr(photo.file, "close")
+            ):
                 photo.file.close()
 
             return True
