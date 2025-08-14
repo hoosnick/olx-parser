@@ -6,12 +6,12 @@ import schedule
 from loguru import logger
 
 from .core.app_factory import ApplicationFactory
-from .core.config import SCHEDULER_INTERVAL_MINUTES
+from .core.config import LOG_TO_FILE, LOGGING_LEVEL, SCHEDULER_INTERVAL_MINUTES
 from .utils.logging_utils import handle_exception, setup_logging
 
 
 def main() -> None:
-    setup_logging()
+    setup_logging(LOGGING_LEVEL, LOG_TO_FILE)
     sys.excepthook = handle_exception
 
     logger.info("Starting OLX Parser application")

@@ -5,7 +5,10 @@ from typing import Optional, Type
 from loguru import logger as log
 
 
-def setup_logging(log_level: str = "INFO") -> None:
+def setup_logging(
+    log_level: str = "INFO",
+    log_to_file: bool = False,
+) -> None:
     # Remove default handler
     log.remove()
 
@@ -20,14 +23,16 @@ def setup_logging(log_level: str = "INFO") -> None:
     )
 
     # Add file handler for persistent logging
-    log.add(
-        "logs/app.log",
-        level="DEBUG",
-        format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}.{function}.{line} - {message}",
-        rotation="1 day",
-        retention="7 days",
-        compression="zip",
-    )
+    if log_to_file:
+        log.add(
+            "logs/app.log",
+            level="DEBUG",
+            format="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | "
+            "{name}.{function}.{line} - {message}",
+            rotation="1 day",
+            retention="7 days",
+            compression="zip",
+        )
 
 
 def handle_exception(
