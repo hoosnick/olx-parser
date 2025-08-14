@@ -40,7 +40,7 @@ class TelegramService:
             message_text = self._format_offer_message(offer)
             reply_markup = self._create_offer_keyboard(offer)
 
-            if not isinstance(photo, str):
+            if photo and not isinstance(photo, str):
                 success = self._send_photo_message(
                     message_text,
                     io.BytesIO(photo.read()),  # type: ignore
