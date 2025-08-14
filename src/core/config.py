@@ -28,7 +28,7 @@ SEARCH_PARAMS: Final[dict[str, int | str]] = {
 DATABASE_NAME: Final[str] = "offers.db"
 
 LOGGING_LEVEL: Final[str] = "INFO"
-LOG_TO_FILE: Final[bool] = False
+LOG_TO_FILE: Final[bool] = True
 
 COLLAGE_OUTPUT_WIDTH: Final[int] = 3840
 COLLAGE_OUTPUT_HEIGHT: Final[int] = 2160

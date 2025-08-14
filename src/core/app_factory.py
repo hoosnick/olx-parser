@@ -1,4 +1,3 @@
-import os
 from typing import Tuple
 
 from ..adapters.database import SQLiteDatabase
@@ -11,10 +10,7 @@ class ApplicationFactory:
 
     @staticmethod
     def create_services() -> Tuple[OLXScrapingService, SQLiteDatabase]:
-        os.makedirs("logs", exist_ok=True)
-
         database = SQLiteDatabase()
-
         telegram_service = TelegramService()
         image_processor = MemoryImageProcessor()
 

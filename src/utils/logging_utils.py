@@ -1,3 +1,4 @@
+import os
 import sys
 from types import TracebackType
 from typing import Optional, Type
@@ -24,6 +25,7 @@ def setup_logging(
 
     # Add file handler for persistent logging
     if log_to_file:
+        os.makedirs("logs", exist_ok=True)
         log.add(
             "logs/app.log",
             level="DEBUG",
