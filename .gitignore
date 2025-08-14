@@ -64,4 +64,3 @@ htmlcov/
 # Configuration (sensitive)
 config_local.py
 .env
-*.env
