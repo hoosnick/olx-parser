@@ -68,14 +68,13 @@ class OLXScrapingService:
             return []
 
     def _filter_new_offers(self, offers_data: list[dict[str, Any]]) -> list[Offer]:
-        existing_offer_ids = set(self.database.get_all_offer_ids())
-        new_offers = []
+        new_offers: list[Offer] = []
 
         for offer_data in offers_data:
             try:
                 offer = Offer(**offer_data)
 
-                if offer.id and offer.id not in existing_offer_ids:
+                if offer.id and not self.database.check_offer_exists(offer.id):
                     new_offers.append(offer)
 
             except ValidationError as e:

@@ -9,8 +9,8 @@ from ..core.config import DATABASE_NAME
 class DatabaseInterface(Protocol):
     """Protocol defining database operations."""
 
-    def get_all_offer_ids(self) -> list[int]:
-        """Retrieve all stored offer IDs."""
+    def check_offer_exists(self, offer_id: int) -> bool:
+        """Check if an offer ID exists in storage."""
         ...
 
     def add_offer_id(self, offer_id: int) -> None:
@@ -43,17 +43,18 @@ class SQLiteDatabase:
             self._cursor.execute(create_table_query)
         logger.debug("Database tables ensured")
 
-    def get_all_offer_ids(self) -> list[int]:
+    def check_offer_exists(self, offer_id: int) -> bool:
         try:
             with self._connection:
-                query = "SELECT offer_id FROM offers"
-                result = self._cursor.execute(query).fetchall()
-                offer_ids = [row[0] for row in result]
-                logger.debug("Retrieved %d offer IDs from database" % len(offer_ids))
-                return offer_ids
+                query = "SELECT 1 FROM offers WHERE offer_id = ?"
+                exists = self._cursor.execute(query, (offer_id,)).fetchone() is not None
+                logger.debug("Offer ID %d exists: %s" % (offer_id, exists))
+                return exists
         except sqlite3.Error as e:
-            logger.error("Database error while retrieving offer IDs: %s" % e)
-            return []
+            logger.error(
+                "Database error while checking offer ID %d: %s" % (offer_id, e)
+            )
+            return False
 
     def add_offer_id(self, offer_id: int) -> None:
         try:
