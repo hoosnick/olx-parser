@@ -68,20 +68,12 @@ class OLXScrapingService:
             return []
 
     def _filter_new_offers(self, offers_data: list[dict[str, Any]]) -> list[Offer]:
-        new_offers: list[Offer] = []
-
-        for offer_data in offers_data:
-            try:
-                offer = Offer(**offer_data)
-
-                if offer.id and not self.database.check_offer_exists(offer.id):
-                    new_offers.append(offer)
-
-            except ValidationError as e:
-                logger.warning("Invalid offer data: %s" % e)
-                continue
-
-        return new_offers
+        offers = [Offer(**offer_data) for offer_data in offers_data]
+        remaining_offers = self.database.remove_existing_offers(
+            [offer.id for offer in offers if offer.id]
+        )
+        logger.debug("New offer IDs: %s" % remaining_offers)
+        return [offer for offer in offers if offer.id in remaining_offers]
 
     def _process_single_offer(self, offer: Offer) -> None:
         if not offer.id:

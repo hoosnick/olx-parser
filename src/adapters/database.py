@@ -9,8 +9,8 @@ from ..core.config import DATABASE_NAME
 class DatabaseInterface(Protocol):
     """Protocol defining database operations."""
 
-    def check_offer_exists(self, offer_id: int) -> bool:
-        """Check if an offer ID exists in storage."""
+    def remove_existing_offers(self, offer_ids: list[int]) -> list[int]:
+        """Remove existing offer IDs from the list."""
         ...
 
     def add_offer_id(self, offer_id: int) -> None:
@@ -43,18 +43,23 @@ class SQLiteDatabase:
             self._cursor.execute(create_table_query)
         logger.debug("Database tables ensured")
 
-    def check_offer_exists(self, offer_id: int) -> bool:
+    def remove_existing_offers(self, offer_ids: list[int]) -> list[int]:
+        # remove offers that already exist in the database from offer_ids
+        # and return the remaining offer_ids
         try:
             with self._connection:
-                query = "SELECT 1 FROM offers WHERE offer_id = ?"
-                exists = self._cursor.execute(query, (offer_id,)).fetchone() is not None
-                logger.debug("Offer ID %d exists: %s" % (offer_id, exists))
-                return exists
+                query = "SELECT offer_id FROM offers WHERE offer_id IN ({seq})"
+                seq = ",".join(["?"] * len(offer_ids))
+                existing_offers = self._cursor.execute(
+                    query.format(seq=seq), offer_ids
+                ).fetchall()
+                existing_ids = [offer[0] for offer in existing_offers]
+                return list(set(offer_ids) - set(existing_ids))
         except sqlite3.Error as e:
             logger.error(
-                "Database error while checking offer ID %d: %s" % (offer_id, e)
+                "Database error while checking offer IDs %s: %s" % (offer_ids, e)
             )
-            return False
+            return []
 
     def add_offer_id(self, offer_id: int) -> None:
         try:
