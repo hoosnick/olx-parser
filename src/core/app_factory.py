@@ -1,7 +1,7 @@
 from typing import Tuple
 
 from ..adapters.database import SQLiteDatabase
-from ..services.image_service import ImageProcessor, MemoryImageProcessor
+from ..services.image_service import ImageProcessor
 from ..services.olx_service import OLXScrapingService
 from ..services.telegram_service import TelegramService
 
@@ -12,7 +12,7 @@ class ApplicationFactory:
     def create_services() -> Tuple[OLXScrapingService, SQLiteDatabase]:
         database = SQLiteDatabase()
         telegram_service = TelegramService()
-        image_processor = MemoryImageProcessor()
+        image_processor = ImageProcessor()
 
         olx_service = OLXScrapingService(
             database=database,

@@ -1,14 +1,12 @@
-import io
 from typing import Any, Optional
 
 import requests
 from loguru import logger
-from pydantic import ValidationError
 
 from ..adapters.database import DatabaseInterface
 from ..core.config import OLX_BASE_URL, OLX_REQUEST_TIMEOUT, SEARCH_PARAMS
 from ..core.models import Offer
-from ..services.image_service import ImageProcessor, MemoryImageProcessor
+from ..services.image_service import ImageProcessor
 from ..services.telegram_service import TelegramService
 
 
@@ -18,7 +16,7 @@ class OLXScrapingService:
         self,
         database: DatabaseInterface,
         telegram_service: TelegramService,
-        image_processor: ImageProcessor | MemoryImageProcessor,
+        image_processor: ImageProcessor,
     ) -> None:
         self.database = database
         self.telegram_service = telegram_service
@@ -98,7 +96,7 @@ class OLXScrapingService:
         except Exception as e:
             logger.exception("Error processing offer %s: %s" % (offer.id, e))
 
-    def _create_offer_collage(self, offer: Offer) -> Optional[str | bytes]:
+    def _create_offer_collage(self, offer: Offer) -> Optional[str]:
         if not offer.photos:
             logger.debug("No photos available for offer %s" % offer.id)
             return None

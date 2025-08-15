@@ -44,8 +44,6 @@ class SQLiteDatabase:
         logger.debug("Database tables ensured")
 
     def remove_existing_offers(self, offer_ids: list[int]) -> list[int]:
-        # remove offers that already exist in the database from offer_ids
-        # and return the remaining offer_ids
         try:
             with self._connection:
                 query = "SELECT offer_id FROM offers WHERE offer_id IN ({seq})"

@@ -1,10 +1,11 @@
 import io
 import os
+import pathlib
 import random
 import time
 from contextlib import suppress
 from datetime import datetime
-from typing import Optional, Union
+from typing import Optional
 
 import telebot
 from loguru import logger
@@ -31,25 +32,15 @@ class TelegramService:
         self.channel_id = channel_id
         logger.info("Telegram service initialized")
 
-    def send_offer_message(
-        self,
-        offer: Offer,
-        photo: Optional[Union[bytes, str]] = None,
-    ) -> bool:
+    def send_offer_message(self, offer: Offer, photo: Optional[str] = None) -> bool:
         try:
             message_text = self._format_offer_message(offer)
             reply_markup = self._create_offer_keyboard(offer)
 
-            if photo and not isinstance(photo, str):
-                success = self._send_photo_message(
-                    message_text,
-                    io.BytesIO(photo.read()),  # type: ignore
-                    reply_markup,
-                )
-            elif isinstance(photo, str) and photo.startswith("https"):
-                success = self._send_photo_message(message_text, photo, reply_markup)
-            else:
+            if photo is None:
                 success = self._send_text_message(message_text, reply_markup)
+            else:
+                success = self._send_photo_message(message_text, photo, reply_markup)
 
             if success:
                 self._random_delay()
@@ -67,12 +58,8 @@ class TelegramService:
             ):
                 with suppress(Exception):
                     os.unlink(photo)
-                    logger.debug("Cleaned up photo file: %s" % photo)
 
-            else:
-                with suppress(Exception):
-                    photo.close()  # type: ignore
-                    logger.debug("Closed photo file stream")
+                logger.debug("Cleaned up photo file: %s" % photo)
 
     def _format_offer_message(self, offer: Offer) -> str:
         template = (
@@ -169,35 +156,32 @@ class TelegramService:
     def _send_photo_message(
         self,
         caption: str,
-        photo: Optional[Union[io.BytesIO, str]],
+        photo: str,
         reply_markup: types.InlineKeyboardMarkup,
     ) -> bool:
         try:
-            if isinstance(photo, str) and photo.startswith("https"):
-                image = photo
+            kwargs = {
+                "chat_id": self.channel_id,
+                "caption": caption,
+                "reply_markup": reply_markup,
+                "timeout": 10,
+                "show_caption_above_media": True,
+            }
+            if photo.startswith("https"):
+                self.bot.send_photo(photo=photo, **kwargs)  # type: ignore
             else:
-                image = types.InputFile(photo)  # type: ignore
+                image = types.InputFile(pathlib.Path(photo))
+                self.bot.send_photo(photo=image, **kwargs)  # type: ignore
 
-            self.bot.send_photo(
-                self.channel_id,
-                caption=caption,
-                photo=image,
-                reply_markup=reply_markup,
-                timeout=10,
-            )
-
-            # Close file if it's a local file
-            if (
-                isinstance(image, types.InputFile)
-                and isinstance(image.file, io.IOBase)
-                and hasattr(image.file, "close")
-            ):
-                image.file.close()
+                with suppress(Exception):
+                    if hasattr(image, "file") and isinstance(image.file, io.IOBase):
+                        if hasattr(image.file, "close"):
+                            image.file.close()
 
             return True
 
         except Exception as e:
-            logger.exception("Error sending photo message: %s" % e)
+            logger.error("Error sending photo message: %s" % e)
             return False
 
     def _send_text_message(
@@ -213,7 +197,7 @@ class TelegramService:
             return True
 
         except Exception as e:
-            logger.exception("Error sending text message: %s" % e)
+            logger.error("Error sending text message: %s" % e)
             return False
 
     def _random_delay(self) -> None:
