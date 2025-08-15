@@ -44,20 +44,14 @@ class SQLiteDatabase:
         logger.debug("Database tables ensured")
 
     def remove_existing_offers(self, offer_ids: list[int]) -> list[int]:
-        try:
-            with self._connection:
-                query = "SELECT offer_id FROM offers WHERE offer_id IN ({seq})"
-                seq = ",".join(["?"] * len(offer_ids))
-                existing_offers = self._cursor.execute(
-                    query.format(seq=seq), offer_ids
-                ).fetchall()
-                existing_ids = [offer[0] for offer in existing_offers]
-                return list(set(offer_ids) - set(existing_ids))
-        except sqlite3.Error as e:
-            logger.error(
-                "Database error while checking offer IDs %s: %s" % (offer_ids, e)
-            )
-            return []
+        with self._connection:
+            query = "SELECT offer_id FROM offers WHERE offer_id IN ({seq})"
+            seq = ",".join(["?"] * len(offer_ids))
+            existing_offers = self._cursor.execute(
+                query.format(seq=seq), offer_ids
+            ).fetchall()
+            existing_ids = [offer[0] for offer in existing_offers]
+            return list(set(offer_ids) - set(existing_ids))
 
     def add_offer_id(self, offer_id: int) -> None:
         try:
@@ -67,8 +61,6 @@ class SQLiteDatabase:
                 logger.debug("Added offer ID %d to database" % offer_id)
         except sqlite3.IntegrityError:
             logger.warning("Offer ID %d already exists in database" % offer_id)
-        except sqlite3.Error as e:
-            logger.error("Database error while adding offer ID %d: %s" % (offer_id, e))
 
     def close(self) -> None:
         self._connection.close()

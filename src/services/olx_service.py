@@ -79,9 +79,6 @@ class OLXScrapingService:
             return
 
         try:
-            # Add to database first to prevent reprocessing
-            self.database.add_offer_id(offer.id)
-
             # Create photo collage if photos available
             photo = self._create_offer_collage(offer)
 
@@ -90,6 +87,7 @@ class OLXScrapingService:
 
             if success:
                 logger.info("Successfully processed: %s" % offer.url)
+                self.database.add_offer_id(offer.id)
             else:
                 logger.warning("Failed to send message for offer %s" % offer.id)
 

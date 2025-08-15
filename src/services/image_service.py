@@ -155,13 +155,15 @@ class ImageProcessor:
 
         # Create rendering task
         border_width = COLLAGE_BORDER_WIDTH * max(page.w, page.h)
+        border_color = (255, 255, 255)
         # border_color = render.random_color()
 
         task = render.RenderingTask(
             page=page,
             output_file=output_path,
+            on_fail=lambda x: logger.exception(x),
             border_width=border_width,
-            border_color=(255, 255, 255),
+            border_color=border_color,
         )
         task.run()
 
