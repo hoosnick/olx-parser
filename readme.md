@@ -1,6 +1,6 @@
 # OLX Parser
 
-![image](meta/image.png)
+<img src="meta/image.png" width="600" alt="image">
 
 ## Architecture
 
