@@ -67,8 +67,10 @@ class OLXScrapingService:
 
     def _filter_new_offers(self, offers_data: list[dict[str, Any]]) -> list[Offer]:
         offers = [Offer(**offer_data) for offer_data in offers_data]
+        todays_offers = [offer for offer in offers if offer.is_created_today]
+
         remaining_offers = self.database.remove_existing_offers(
-            [offer.id for offer in offers if offer.id]
+            [offer.id for offer in todays_offers if offer.id]
         )
         logger.debug("New offer IDs: %s" % remaining_offers)
         return [offer for offer in offers if offer.id in remaining_offers]

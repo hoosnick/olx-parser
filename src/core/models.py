@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -53,9 +54,24 @@ class Offer(Base):
     url: Optional[str] = None
     title: Optional[str] = None
     last_refresh_time: Optional[str] = None
+    created_time: Optional[str] = None  # 2025-03-23T16:46:38+05:00
     description: Optional[str] = None
     params: Optional[List[Param]] = None
     status: Optional[str] = None
     map: Optional[Map] = None
     location: Optional[Location] = None
     photos: Optional[List[Photo]] = None
+
+    @property
+    def is_created_today(self) -> bool:
+        if not self.created_time:
+            return False
+
+        try:
+            created_dt = datetime.fromisoformat(
+                self.created_time.replace("Z", "+00:00")
+            )
+            now_utc = datetime.now(timezone.utc)
+            return created_dt.date() == now_utc.date()
+        except ValueError:
+            return False
