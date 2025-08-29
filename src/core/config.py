@@ -23,7 +23,7 @@ SEARCH_PARAMS: Final[dict[str, int | str]] = {
     "currency": "UYE",
     "sort_by": "created_at:desc",
     "filter_float_price:from": 100,
-    "filter_float_price:to": 350,
+    "filter_float_price:to": 300,
     "filter_float_number_of_rooms:from": 1,
     "filter_float_number_of_rooms:to": 6,
     "filter_refiners": "",
