@@ -40,7 +40,7 @@ COLLAGE_BORDER_WIDTH: Final[float] = 0.006
 MAX_DOWNLOAD_WORKERS: Final[int] = 5
 MAX_ASPECT_RATIO: Final[float] = 1.5
 
-SCHEDULER_INTERVAL_MINUTES: Final[int] = 1
+SCHEDULER_INTERVAL_SECONDS: Final[int] = int(os.environ.get("INTERVAL", 30))
 MESSAGE_DELAY_SECONDS: Final[list[int]] = [1, 2, 3]
 MAX_DESCRIPTION_LENGTH: Final[int] = 800
 

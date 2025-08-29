@@ -6,7 +6,7 @@ import schedule
 from loguru import logger
 
 from .core.app_factory import ApplicationFactory
-from .core.config import LOG_TO_FILE, LOGGING_LEVEL, SCHEDULER_INTERVAL_MINUTES
+from .core.config import LOG_TO_FILE, LOGGING_LEVEL, SCHEDULER_INTERVAL_SECONDS
 from .utils.logging_utils import handle_exception, setup_logging
 
 
@@ -18,10 +18,10 @@ def main() -> None:
 
     olx_service, database = ApplicationFactory.create_services()
 
-    schedule.every(SCHEDULER_INTERVAL_MINUTES).minutes.do(
+    schedule.every(SCHEDULER_INTERVAL_SECONDS).seconds.do(
         olx_service.fetch_and_process_offers
     )
-    logger.info("Scheduled scraping every %d minute(s)" % SCHEDULER_INTERVAL_MINUTES)
+    logger.info("Scheduled scraping every %d second(s)" % SCHEDULER_INTERVAL_SECONDS)
 
     try:
         # Run initial scrape
