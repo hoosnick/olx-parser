@@ -68,7 +68,6 @@ export TELEGRAM_CHANNEL_ID=<YOUR_CHANNEL_ID>
 
 Key configuration options in `src/core/config.py`:
 
-- `SCHEDULER_INTERVAL_MINUTES`: Scraping frequency
 - `SEARCH_PARAMS`: OLX search criteria
 
 ```py
