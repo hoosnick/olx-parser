@@ -1,6 +1,10 @@
 import os
 from typing import Final
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 TELEGRAM_BOT_TOKEN: Final[str] = os.environ.get("TELEGRAM_BOT_TOKEN", "YOUR_TOKEN")
 TELEGRAM_CHANNEL_ID: Final[int] = int(os.environ.get("TELEGRAM_CHANNEL_ID", "0"))
 

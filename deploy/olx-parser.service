@@ -1,0 +1,19 @@
+[Unit]
+Description=OLX-Parser Service
+After=network.target
+
+[Service]
+Type=exec
+WorkingDirectory=/root/olx-parser
+Environment=PATH=/root/olx-parser/.venv/bin
+EnvironmentFile=/root/olx-parser/.env
+ExecStart=/root/olx-parser/.venv/bin/python app.py
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
